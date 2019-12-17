@@ -34,7 +34,7 @@ COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 
-RUN ./mvnw dependency:resolve -B
+RUN ./mvnw -e -B dependency:resolve
 
 COPY src src
 
