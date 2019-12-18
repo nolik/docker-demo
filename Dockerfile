@@ -20,7 +20,6 @@ RUN jlink \
        # java.security.jgss - org/ietf/jgss/GSSException
        # java.instrument - java/lang/instrument/IllegalClassFormatException
    --compress 2 \
-#    --strip-debug \
    --no-header-files \
    --no-man-pages \
    --output "$JAVA_MINIMAL"
@@ -52,13 +51,17 @@ FROM alpine:3.10.3
 
 LABEL maintainer="nolik03@gmail.com"
 
+COPY --chown=guest:users ./entrypoint.sh /app/entrypoint.sh
+
+RUN chmod u=rwx /app/entrypoint.sh
+
 USER guest
 
-ARG PATH="$PATH:$JAVA_MINIMAL/bin"
+ENV JAVA_MINIMAL=/opt/jre
+ENV PATH="$PATH:$JAVA_MINIMAL/bin"
 
 COPY --from=packager "$JAVA_MINIMAL" "$JAVA_MINIMAL"
 
-VOLUME /tmp
 ARG DEPENDENCY=/workspace/app/target
 
 #Dependency layer
@@ -72,5 +75,7 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/classes/application.properties /app
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes/com /app/com
 
-CMD ["java","-cp","app:app/lib/*","com.example.dockerdemo.DockerDemoApplication"]
+#CMD ["java","-cp","app:app/lib/*","com.example.dockerdemo.DockerDemoApplication"]
+CMD ["sh", "/app/entrypoint.sh"]
+
 EXPOSE 8080
